@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'src/weather_widget.dart';
+import 'src/weather/weather_bg_widget.dart';
 
 void main() {
 //  debugPaintSizeEnabled = true;
@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    return WeatherWidget(
+    return WeatherBgWidget(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Center(
@@ -44,8 +44,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
         ),
       ),
-      weatherKind: WeatherKind.thunder_storm,
-      isNight: true,
+      weatherKind: WeatherKind.wind,
+      isNight: false,
     );
   }
 }
