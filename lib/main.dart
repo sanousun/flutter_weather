@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'src/weather_sunny.dart';
-import 'src/weather_cloudy.dart';
+import 'src/weather_smog.dart';
+
 
 void main() {
 //  debugPaintSizeEnabled = true;
@@ -35,10 +35,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return new Scaffold(
-      body: WeatherCloudyWidget(
-        width: size.width,
-        height: size.height,
-      ),
+      body: WeatherSmogWidget(size.width, size.height),
     );
   }
 }

@@ -13,7 +13,7 @@ class WeatherSunnyState extends State<WeatherSunnyWidget>
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-        painter: WeatherSunnyPainter(count),
+        painter: _WeatherSunnyPainter(count),
         child: ConstrainedBox(
           constraints: BoxConstraints.expand(),
         ));
@@ -38,8 +38,8 @@ class WeatherSunnyState extends State<WeatherSunnyWidget>
   }
 }
 
-class WeatherSunnyPainter extends CustomPainter {
-  WeatherSunnyPainter(this.count);
+class _WeatherSunnyPainter extends CustomPainter {
+  _WeatherSunnyPainter(this.count);
 
   static const REFRESH_INTERVAL = 8;
 
@@ -99,5 +99,5 @@ class WeatherSunnyPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(WeatherSunnyPainter old) => count != old.count;
+  bool shouldRepaint(_WeatherSunnyPainter old) => count != old.count;
 }

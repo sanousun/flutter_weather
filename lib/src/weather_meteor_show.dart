@@ -2,21 +2,20 @@ import 'package:flutter/material.dart';
 import 'weather_element.dart';
 import 'dart:math';
 
-class WeatherCloudyWidget extends StatefulWidget {
-  WeatherCloudyWidget(this.width, this.height);
+class WeatherMeteorShowWidget extends StatefulWidget {
+  WeatherMeteorShowWidget(this.width, this.height);
 
   final double width;
   final double height;
 
   @override
-  State<StatefulWidget> createState() => _WeatherCloudyState();
+  State<StatefulWidget> createState() => _WeatherMeteorShowState();
 }
 
-class _WeatherCloudyState extends State<WeatherCloudyWidget>
+class _WeatherMeteorShowState extends State<WeatherMeteorShowWidget>
     with SingleTickerProviderStateMixin {
-  List<Cloud> clouds = <Cloud>[];
+  List<Meteor> meteors = <Meteor>[];
   List<Star> stars = <Star>[];
-  Thunder thunder = Thunder();
   AnimationController _animationController;
 
   @override
@@ -24,16 +23,21 @@ class _WeatherCloudyState extends State<WeatherCloudyWidget>
     super.initState();
     double width = widget.width;
     double height = widget.height;
-    clouds.add(Cloud(
-      centerX: width * 0.1529,
-      centerY: (width * 0.1529 * 0.5568 + width * 0.050),
-      initRadius: width * 0.2649,
-      scaleRatio: 1.20,
-      baseColor: Color.fromRGBO(151, 168, 202, 1.0),
-      alpha: 0.4,
-      initProgress: 0,
-      duration: 7000,
-    ));
+    List<Color> colors = <Color>[
+      Color.fromRGBO(170, 215, 252, 1.0),
+      Color.fromRGBO(255, 255, 255, 1.0),
+      Color.fromRGBO(255, 255, 255, 1.0)
+    ];
+    List<double> scales = <double>[0.4, 0.7, 1.0];
+    for (int i = 0; i < 15; i++) {
+      meteors.add(Meteor(
+        color: colors[i % 3],
+        scale: scales[i % 3],
+        viewHeight: widget.width,
+        viewWidth: widget.height,
+      ));
+    }
+
     Random r = new Random();
     double canvasSize = pow(pow(width, 2) + pow(height, 2), 0.5);
     int w = canvasSize.floor();
@@ -71,12 +75,11 @@ class _WeatherCloudyState extends State<WeatherCloudyWidget>
           _animationController.reset();
           _animationController.forward();
           setState(() {
-            thunder.update(16);
             for (Star s in stars) {
               s.update(16);
             }
-            for (Cloud c in clouds) {
-              c.update(16);
+            for (Meteor m in meteors) {
+              m.update(16);
             }
           });
         }
@@ -87,11 +90,7 @@ class _WeatherCloudyState extends State<WeatherCloudyWidget>
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _WeatherCloudyPainter(
-        clouds,
-        stars,
-        thunder,
-      ),
+      painter: _WeatherMeteorShowPainter(meteors, stars),
       child: ConstrainedBox(
         constraints: BoxConstraints.expand(),
       ),
@@ -99,12 +98,11 @@ class _WeatherCloudyState extends State<WeatherCloudyWidget>
   }
 }
 
-class _WeatherCloudyPainter extends CustomPainter {
-  _WeatherCloudyPainter(this.clouds, this.stars, this.thunder);
+class _WeatherMeteorShowPainter extends CustomPainter {
+  _WeatherMeteorShowPainter(this.meteors, this.stars);
 
-  List<Cloud> clouds;
+  List<Meteor> meteors;
   List<Star> stars;
-  Thunder thunder;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -121,9 +119,9 @@ class _WeatherCloudyPainter extends CustomPainter {
       canvas.drawCircle(s.center, s.radius, paint);
     }
 
-    for (Cloud c in clouds) {
-      paint.color = c.color;
-      canvas.drawCircle(c.center, c.radius, paint);
+    for (Meteor m in meteors) {
+      paint.color = m.color;
+      canvas.drawRect(m.rect, paint);
     }
   }
 
