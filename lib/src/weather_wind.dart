@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'weather_element.dart';
 
 class WeatherWindWidget extends StatefulWidget {
-  WeatherWindWidget(this.width, this.height);
+  WeatherWindWidget(this.screenSize);
 
-  final double width;
-  final double height;
+  final Size screenSize;
 
   @override
   State<StatefulWidget> createState() => _WeatherWindState();
@@ -30,26 +29,26 @@ class _WeatherWindState extends State<WeatherWindWidget>
       winds.add(Wind(
         color: colors[i % 3],
         scale: scales[i % 3],
-        viewHeight: widget.width,
-        viewWidth: widget.height,
+        viewHeight: widget.screenSize.width,
+        viewWidth: widget.screenSize.height,
       ));
-
-      _animationController = AnimationController(
-        duration: Duration(milliseconds: 32),
-        vsync: this,
-      )..addStatusListener((state) {
-          if (state == AnimationStatus.completed) {
-            _animationController.reset();
-            _animationController.forward();
-            setState(() {
-              for (Wind r in winds) {
-                r.update(32);
-              }
-            });
-          }
-        });
-      _animationController.forward();
     }
+
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 32),
+      vsync: this,
+    )..addStatusListener((state) {
+        if (state == AnimationStatus.completed) {
+          _animationController.reset();
+          _animationController.forward();
+          setState(() {
+            for (Wind r in winds) {
+              r.update(32);
+            }
+          });
+        }
+      });
+    _animationController.forward();
   }
 
   @override

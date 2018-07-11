@@ -6,7 +6,7 @@ class Cloud {
     double centerX,
     double centerY,
     this.initRadius,
-    this.scaleRatio,
+    this.scale,
     this.baseColor,
     this.alpha,
     int initProgress,
@@ -23,15 +23,15 @@ class Cloud {
   double initRadius;
 
   /// 半径最大的缩放比例
-  double scaleRatio;
+  double scale;
 
   double get radius {
     if (progress < 0.5 * duration) {
-      return initRadius * (1 + (scaleRatio - 1) * progress / 0.5 / duration);
+      return initRadius * (1 + (scale - 1) * progress / 0.5 / duration);
     } else {
       return initRadius *
-          (scaleRatio -
-              (scaleRatio - 1) * (progress - 0.5 * duration) / 0.5 / duration);
+          (scale -
+              (scale - 1) * (progress - 0.5 * duration) / 0.5 / duration);
     }
   }
 
@@ -96,13 +96,13 @@ class Smog {
 
 class Star {
   Star({
-    int centerX,
-    int centerY,
+    double centerX,
+    double centerY,
     int initRadius,
     this.baseColor,
     int initProgress,
     this.duration,
-  })  : this.center = Offset(centerX.ceilToDouble(), centerY.ceilToDouble()),
+  })  : this.center = Offset(centerX, centerY),
         this.radius = initRadius * (0.7 + (0.3 * Random().nextDouble())),
         this.progress = initProgress % duration;
 
@@ -144,7 +144,6 @@ class Meteor {
         this.minHeight = (1.1 * viewWidth / cos(60.0 * pi / 180.0)) * 0.7,
         this.width = viewWidth * 0.0088 * scale {
     _init(true);
-    print("maxHeihgt:$maxHeight");
   }
 
   Color color;
@@ -176,7 +175,6 @@ class Meteor {
       y = -maxHeight;
     }
     height = minHeight + r.nextDouble() * (maxHeight - minHeight);
-    print("height:$height");
   }
 
   void update(int interval) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class WeatherSunnyWidget extends StatefulWidget {
+class WeatherClearWidget extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => WeatherSunnyState();
 }
 
-class WeatherSunnyState extends State<WeatherSunnyWidget>
+class WeatherSunnyState extends State<WeatherClearWidget>
     with TickerProviderStateMixin {
   AnimationController _animationController;
   int count = 0;
@@ -13,7 +13,7 @@ class WeatherSunnyState extends State<WeatherSunnyWidget>
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-        painter: _WeatherSunnyPainter(count),
+        painter: _WeatherClearPainter(count),
         child: ConstrainedBox(
           constraints: BoxConstraints.expand(),
         ));
@@ -38,8 +38,8 @@ class WeatherSunnyState extends State<WeatherSunnyWidget>
   }
 }
 
-class _WeatherSunnyPainter extends CustomPainter {
-  _WeatherSunnyPainter(this.count);
+class _WeatherClearPainter extends CustomPainter {
+  _WeatherClearPainter(this.count);
 
   static const REFRESH_INTERVAL = 8;
 
@@ -99,5 +99,5 @@ class _WeatherSunnyPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_WeatherSunnyPainter old) => count != old.count;
+  bool shouldRepaint(_WeatherClearPainter old) => count != old.count;
 }

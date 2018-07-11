@@ -3,10 +3,9 @@ import 'weather_element.dart';
 import 'dart:math';
 
 class WeatherMeteorShowWidget extends StatefulWidget {
-  WeatherMeteorShowWidget(this.width, this.height);
+  WeatherMeteorShowWidget(this.screenSize);
 
-  final double width;
-  final double height;
+  final Size screenSize;
 
   @override
   State<StatefulWidget> createState() => _WeatherMeteorShowState();
@@ -21,8 +20,8 @@ class _WeatherMeteorShowState extends State<WeatherMeteorShowWidget>
   @override
   void initState() {
     super.initState();
-    double width = widget.width;
-    double height = widget.height;
+    double width = widget.screenSize.width;
+    double height = widget.screenSize.height;
     List<Color> colors = <Color>[
       Color.fromRGBO(170, 215, 252, 1.0),
       Color.fromRGBO(255, 255, 255, 1.0),
@@ -33,11 +32,12 @@ class _WeatherMeteorShowState extends State<WeatherMeteorShowWidget>
       meteors.add(Meteor(
         color: colors[i % 3],
         scale: scales[i % 3],
-        viewHeight: widget.width,
-        viewWidth: widget.height,
+        viewHeight: widget.screenSize.width,
+        viewWidth: widget.screenSize.height,
       ));
     }
 
+    // star
     Random r = new Random();
     double canvasSize = pow(pow(width, 2) + pow(height, 2), 0.5);
     int w = canvasSize.floor();
@@ -45,28 +45,18 @@ class _WeatherMeteorShowState extends State<WeatherMeteorShowWidget>
     int radius = (0.0028 * width).floor();
     Color color = Color.fromRGBO(255, 255, 255, 1.0);
     for (int i = 0; i < 30; i++) {
-      int x = r.nextInt(w) - (0.5 * (canvasSize - width)).floor();
-      int y = r.nextInt(h) - (0.5 * (canvasSize - height)).floor();
-      bool newPosition = true;
-      for (int j = 0; j < i; j++) {
-        if (stars[j].center.dx == x && stars[j].center.dy == y) {
-          newPosition = false;
-          break;
-        }
-      }
-      if (newPosition) {
-        int duration = 1500 + r.nextInt(3) * 500;
-        stars.add(Star(
-            centerX: x,
-            centerY: y,
-            initRadius: radius,
-            baseColor: color,
-            initProgress: r.nextInt(duration),
-            duration: duration));
-      } else {
-        i--;
-      }
+      double x = r.nextDouble() * w - 0.5 * (canvasSize - width);
+      double y = r.nextDouble() * h - 0.5 * (canvasSize - height);
+      int duration = 1500 + r.nextInt(3) * 500;
+      stars.add(Star(
+          centerX: x,
+          centerY: y,
+          initRadius: radius,
+          baseColor: color,
+          initProgress: r.nextInt(duration),
+          duration: duration));
     }
+
     _animationController = AnimationController(
       duration: Duration(milliseconds: 32),
       vsync: this,

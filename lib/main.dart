@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'src/weather_smog.dart';
-
+import 'src/weather_widget.dart';
 
 void main() {
 //  debugPaintSizeEnabled = true;
@@ -33,9 +32,20 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    return new Scaffold(
-      body: WeatherSmogWidget(size.width, size.height),
+    return WeatherWidget(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Text(
+            "Weather Demo",
+            style: TextStyle(
+              fontSize: 20.0,
+            ),
+          ),
+        ),
+      ),
+      weatherKind: WeatherKind.thunder_storm,
+      isNight: true,
     );
   }
 }
