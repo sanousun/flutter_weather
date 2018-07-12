@@ -233,8 +233,8 @@ class WeatherCanvas {
       Random r = new Random();
       for (int i = 0; i < 6; i++) {
         weatherElements.add(Cloud(
-          centerX: width * widthRate[i],
-          centerY: width * heightRate[i],
+          initCX: width * widthRate[i],
+          initCY: width * heightRate[i],
           initRadius: width * radiusRate[i],
           baseColor: cloudColor,
           scale: i > 2 ? cloudScale[1] : cloudScale[0],
@@ -411,8 +411,8 @@ class WeatherCanvas {
 
       for (int i = 0; i < scales.length; i++) {
         weatherElements.add(Smog(
-          centerX: cX,
-          centerY: cY,
+          initCX: cX,
+          initCY: cY,
           initRadius: width * scales[i],
           baseColor: color,
           alpha: alpha,
@@ -423,19 +423,19 @@ class WeatherCanvas {
     }
   }
 
-  void update() {
+  void update(int interval, double rotation2D, double rotation3D) {
     for (WeatherElement element in weatherElements) {
-      element.update(32);
+      element.update(interval, rotation2D, rotation3D);
     }
   }
 
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     // 背景绘制
     paint.color = backgroundColor;
     canvas.drawRect(Rect.fromLTWH(0.0, 0.0, width, height), paint);
     // 元素绘制
     for (WeatherElement element in weatherElements) {
-      element.paint(canvas, paint);
+      element.paint(canvas, paint, rotation2D);
     }
   }
 }

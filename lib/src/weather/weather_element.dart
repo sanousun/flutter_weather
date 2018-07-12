@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 abstract class WeatherElement {
-  void update(int interval);
+  void update(int interval, double rotation2D, double rotation3D);
 
-  void paint(Canvas canvas, Paint paint);
+  void paint(Canvas canvas, Paint paint, double rotation2D);
 }
 
 class Sun extends WeatherElement {
@@ -24,11 +24,13 @@ class Sun extends WeatherElement {
   double alpha;
   double viewWidth;
   double viewHeight;
+  double deltaX;
+  double deltaY;
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     canvas.save();
-    canvas.translate(viewWidth, 0.0333 * viewWidth);
+    canvas.translate(viewWidth + deltaX, 0.0333 * viewWidth + deltaY);
     Rect rect = Rect.fromLTRB(-size, -size, size, size);
     paint.color = color.withOpacity(alpha);
     canvas.rotate(angle);
@@ -40,7 +42,9 @@ class Sun extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
+  void update(int interval, double rotation2D, double rotation3D) {
+    deltaX = sin(rotation2D * pi / 180.0) * 0.3 * viewWidth;
+    deltaY = sin(rotation3D * pi / 180.0) * -0.3 * viewWidth;
     angle = ((speed * interval) + angle) % 90;
   }
 }
@@ -76,12 +80,12 @@ class Star extends WeatherElement {
   int duration;
 
   @override
-  void update(int interval) {
+  void update(int interval, double rotation2D, double rotation3D) {
     progress = (progress + interval) % duration;
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
     canvas.drawCircle(center, radius, paint);
   }
@@ -115,6 +119,8 @@ class Meteor extends WeatherElement {
   double width;
   double height;
 
+  double lastRotation3D = 1000.0;
+
   Rect get rect {
     double x = this.x - (canvasSize - viewWidth) * 0.5;
     double y = this.y - (canvasSize - viewHeight) * 0.5;
@@ -133,36 +139,50 @@ class Meteor extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
-    y += speed * interval * (pow(scale, 1.5));
-    x -= 0;
+  void update(int interval, double rotation2D, double rotation3D) {
+    double deltaRotation3D =
+        lastRotation3D == 1000.0 ? 0.0 : rotation3D - lastRotation3D;
+    lastRotation3D = rotation3D;
+    x -= (speed * interval) *
+        (5 * sin(deltaRotation3D * pi / 180.0) * cos(60 * pi / 180.0));
+    y += (speed * interval) *
+        (pow(scale, 1.5) -
+            5 * sin(deltaRotation3D * pi / 180.0) * sin(60 * pi / 180.0));
     if (y >= canvasSize) {
       _init(false);
     }
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
+    canvas.save();
+    canvas.rotate(60 * pi / 180);
     canvas.drawRect(rect, paint);
+    canvas.restore();
   }
 }
 
 class Cloud extends WeatherElement {
   Cloud({
-    double centerX,
-    double centerY,
+    this.initCX,
+    this.initCY,
     this.initRadius,
     this.scale,
     this.baseColor,
     this.alpha,
     int initProgress,
     this.duration,
-  })  : this.center = Offset(centerX, centerY),
-        this.progress = initProgress % duration;
+  })  : this.progress = initProgress % duration,
+        this.centerX = initCX,
+        this.centerY = initCY;
 
   /// 初始化中心点
-  Offset center;
+  double centerX;
+  double centerY;
+
+  Offset get center => Offset(centerX, centerY);
+
   double initCX;
   double initCY;
 
@@ -192,12 +212,14 @@ class Cloud extends WeatherElement {
   int duration;
 
   @override
-  void update(int interval) {
+  void update(int interval, double rotation2D, double rotation3D) {
+    centerX = initCX + sin(rotation2D * pi / 180.0) * 0.40 * radius;
+    centerY = initCY - sin(rotation3D * pi / 180.0) * 0.50 * radius;
     progress = (progress + interval) % duration;
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
     canvas.drawCircle(center, radius, paint);
   }
@@ -246,7 +268,7 @@ class Thunder extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
+  void update(int interval, double rotation2D, double rotation3D) {
     progress += interval;
     if (progress > duration + delay) {
       _init();
@@ -254,7 +276,7 @@ class Thunder extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
     canvas.drawRect(Rect.fromLTWH(0.0, 0.0, viewWidth, viewHeight), paint);
   }
@@ -267,7 +289,7 @@ class Rain extends WeatherElement {
     this.viewWidth,
     this.viewHeight,
   })  : this.canvasSize = pow(pow(viewWidth, 2) + pow(viewHeight, 2), 0.5),
-        this.speed = viewWidth / 300,
+        this.speed = viewHeight / 300,
         this.maxWidth = 0.0111 * viewWidth,
         this.minWidth = 0.0089 * viewWidth,
         this.maxHeight = 0.0111 * viewWidth * 18,
@@ -291,6 +313,8 @@ class Rain extends WeatherElement {
   double width;
   double height;
 
+  double lastRotation3D = 1000.0;
+
   Rect get rect {
     double x = this.x - (canvasSize - viewWidth) * 0.5;
     double y = this.y - (canvasSize - viewHeight) * 0.5;
@@ -310,18 +334,29 @@ class Rain extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
-    y += speed * interval * (pow(scale, 1.5));
-    x -= 0;
+  void update(int interval, double rotation2D, double rotation3D) {
+    double deltaRotation3D =
+        lastRotation3D == 1000.0 ? 0.0 : rotation3D - lastRotation3D;
+    lastRotation3D = rotation3D;
+    y += (speed * interval) *
+        (pow(scale, 1.5) -
+            5 * sin(deltaRotation3D * pi / 180.0) * cos(8 * pi / 180.0));
+    x -= (speed * interval) *
+        (5 * sin(deltaRotation3D * pi / 180.0) * sin(8 * pi / 180.0));
     if (y >= canvasSize) {
       _init(false);
     }
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
+    canvas.save();
+    canvas.translate(viewWidth / 2, viewHeight / 2);
+    canvas.rotate((rotation2D + 8) * pi / 180);
+    canvas.translate(-viewWidth / 2, -viewHeight / 2);
     canvas.drawRect(rect, paint);
+    canvas.restore();
   }
 }
 
@@ -355,6 +390,7 @@ class Wind extends WeatherElement {
   double y;
   double width;
   double height;
+  double lastRotation3D = 1000.0;
 
   Rect get rect {
     double x = this.x - (canvasSize - viewWidth) * 0.5;
@@ -375,18 +411,29 @@ class Wind extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
-    x += speed * interval * pow(scale, 1.5);
-    y -= 0;
+  void update(int interval, double rotation2D, double rotation3D) {
+    double deltaRotation3D =
+        lastRotation3D == 1000.0 ? 0.0 : rotation3D - lastRotation3D;
+    lastRotation3D = rotation3D;
+    x += (speed * interval) *
+        (pow(scale, 1.5) +
+            5 * sin(deltaRotation3D * pi / 180.0) * cos(16 * pi / 180.0));
+    y -= (speed * interval) *
+        (5 * sin(deltaRotation3D * pi / 180.0) * sin(16 * pi / 180.0));
     if (x >= canvasSize) {
       _init(false);
     }
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
+    canvas.save();
+    canvas.translate(viewWidth / 2, viewHeight / 2);
+    canvas.rotate((rotation2D - 16) * pi / 180);
+    canvas.translate(-viewWidth / 2, -viewHeight / 2);
     canvas.drawRect(rect, paint);
+    canvas.restore();
   }
 }
 
@@ -416,6 +463,9 @@ class Hail extends WeatherElement {
   double viewHeight;
 
   double _canvasSize;
+  double lastRotation3D = 1000.0;
+
+  Path path = Path();
 
   void _init(bool firstTime) {
     Random r = Random();
@@ -427,24 +477,32 @@ class Hail extends WeatherElement {
     }
   }
 
-  void update(int interval) {
-    centerY += _speed * interval * pow(scale, 1.5);
+  void update(int interval, double rotation2D, double rotation3D) {
+    double deltaRotation3D =
+        lastRotation3D == 1000.0 ? 0.0 : rotation3D - lastRotation3D;
+    lastRotation3D = rotation3D;
+    centerY += (_speed * interval) *
+        (pow(scale, 1.5) - 5 * sin(deltaRotation3D * pi / 180.0));
     if (centerY + size >= _canvasSize) {
       _init(false);
     }
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
-    Path path = Path();
     path.reset();
     path.moveTo(centerX - size, centerY);
     path.lineTo(centerX, centerY - size);
     path.lineTo(centerX + size, centerY);
     path.lineTo(centerX, centerY + size);
     path.close();
+    canvas.save();
+    canvas.translate(viewWidth / 2, viewHeight / 2);
+    canvas.rotate((rotation2D) * pi / 180);
+    canvas.translate(-viewWidth / 2, -viewHeight / 2);
     canvas.drawPath(path, paint);
+    canvas.restore();
   }
 }
 
@@ -464,6 +522,7 @@ class Snow extends WeatherElement {
   double _cY;
 
   double radius;
+  double lastRotation3D = 1000.0;
 
   Offset get center {
     var centerX = (_cX - (_canvasSize - viewWidth) * 0.5);
@@ -494,35 +553,47 @@ class Snow extends WeatherElement {
   }
 
   @override
-  void update(int interval) {
-    _cX += _speedX * interval * pow(scale, 1.5);
-    _cY += _speedY * interval * pow(scale, 1.5);
+  void update(int interval, double rotation2D, double rotation3D) {
+    double deltaRotation3D =
+        lastRotation3D == 1000.0 ? 0.0 : rotation3D - lastRotation3D;
+    lastRotation3D = rotation3D;
+    _cX += (_speedX * interval) * pow(scale, 1.5);
+    _cY += (_speedY * interval) *
+        (pow(scale, 1.5) - 5 * sin(deltaRotation3D * pi / 180.0));
     if (_cY >= _canvasSize) {
       _init(false);
     }
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
+    canvas.save();
+    canvas.translate(viewWidth / 2, viewHeight / 2);
+    canvas.rotate((rotation2D) * pi / 180);
+    canvas.translate(-viewWidth / 2, -viewHeight / 2);
     canvas.drawCircle(center, radius, paint);
+    canvas.restore();
   }
 }
 
 class Smog extends WeatherElement {
   Smog({
-    double centerX,
-    double centerY,
+    this.initCX,
+    this.initCY,
     this.initRadius,
     this.baseColor,
     this.alpha,
     int initProgress,
     this.duration,
-  })  : this.center = Offset(centerX, centerY),
+  })  : this.centerX = initCX,
+        this.centerY = initCY,
         this.progress = initProgress % duration;
 
   /// 初始化中心点
-  Offset center;
+  Offset get center => Offset(centerX, centerY);
+  double centerX;
+  double centerY;
   double initCX;
   double initCY;
 
@@ -549,12 +620,14 @@ class Smog extends WeatherElement {
   int duration;
 
   @override
-  void update(int interval) {
+  void update(int interval, double rotation2D, double rotation3D) {
+    centerX = (initCX + sin(rotation2D * pi / 180.0) * 0.25 * radius);
+    centerY = (initCY - sin(rotation3D * pi / 180.0) * 0.25 * radius);
     progress = (progress + interval) % duration;
   }
 
   @override
-  void paint(Canvas canvas, Paint paint) {
+  void paint(Canvas canvas, Paint paint, double rotation2D) {
     paint.color = color;
     canvas.drawCircle(center, radius, paint);
   }

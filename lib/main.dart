@@ -44,8 +44,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ),
         ),
       ),
-      weatherKind: WeatherKind.wind,
-      isNight: false,
+      weatherKind: WeatherKind.rainy,
+      isNight: true,
     );
   }
 }
