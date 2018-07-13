@@ -49,6 +49,15 @@ class WeatherState extends State<WeatherWidget> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget(WeatherWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isNight != widget.isNight ||
+        oldWidget.weatherKind != widget.weatherKind) {
+      _weatherCanvas.reset(widget.weatherKind, widget.isNight);
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
     _platform.invokeMethod("unregisterSensor");
@@ -64,7 +73,7 @@ class WeatherState extends State<WeatherWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _WeatherPainter(_weatherCanvas, rotation2D),
+      painter: _WeatherPainter(_weatherCanvas, rotation2D, 1.0),
       child: ConstrainedBox(
         constraints: BoxConstraints.expand(),
       ),
@@ -73,17 +82,18 @@ class WeatherState extends State<WeatherWidget> with TickerProviderStateMixin {
 }
 
 class _WeatherPainter extends CustomPainter {
-  _WeatherPainter(this.weatherCanvas, this.rotation2D);
+  _WeatherPainter(this.weatherCanvas, this.rotation2D, this.opacity);
 
   WeatherCanvas weatherCanvas;
   double rotation2D;
+  double opacity;
 
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.fill;
-    weatherCanvas.paint(canvas, paint, rotation2D);
+    weatherCanvas.paint(canvas, paint, rotation2D, opacity);
   }
 
   @override

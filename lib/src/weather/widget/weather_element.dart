@@ -4,7 +4,7 @@ import 'dart:math';
 abstract class WeatherElement {
   void update(int interval, double rotation2D, double rotation3D);
 
-  void paint(Canvas canvas, Paint paint, double rotation2D);
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity);
 }
 
 class Sun extends WeatherElement {
@@ -28,11 +28,11 @@ class Sun extends WeatherElement {
   double deltaY = 0.0;
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(alpha * opacity);
     canvas.save();
     canvas.translate(viewWidth + deltaX, 0.0333 * viewWidth + deltaY);
     Rect rect = Rect.fromLTRB(-size, -size, size, size);
-    paint.color = color.withOpacity(alpha);
     canvas.rotate(angle);
     for (int i = 0; i < 3; i++) {
       canvas.drawRect(rect, paint);
@@ -54,7 +54,7 @@ class Star extends WeatherElement {
     double centerX,
     double centerY,
     double initRadius,
-    this.baseColor,
+    this.color,
     int initProgress,
     this.duration,
   })  : this.center = Offset(centerX, centerY),
@@ -64,16 +64,14 @@ class Star extends WeatherElement {
   Offset center;
   double radius;
 
-  Color baseColor;
+  Color color;
 
-  Color get color {
-    double alpha;
+  double get alpha {
     if (progress < 0.5 * duration) {
-      alpha = progress / 0.5 / duration;
+      return progress / 0.5 / duration;
     } else {
-      alpha = 1 - (progress - 0.5 * duration) / 0.5 / duration;
+      return 1 - (progress - 0.5 * duration) / 0.5 / duration;
     }
-    return baseColor.withOpacity(alpha);
   }
 
   int progress;
@@ -85,8 +83,8 @@ class Star extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(alpha * opacity);
     canvas.drawCircle(center, radius, paint);
   }
 }
@@ -154,8 +152,8 @@ class Meteor extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(opacity);
     canvas.save();
     canvas.rotate(60 * pi / 180);
     canvas.drawRect(rect, paint);
@@ -169,7 +167,7 @@ class Cloud extends WeatherElement {
     this.initCY,
     this.initRadius,
     this.scale,
-    this.baseColor,
+    this.color,
     this.alpha,
     int initProgress,
     this.duration,
@@ -202,10 +200,8 @@ class Cloud extends WeatherElement {
   }
 
   /// 颜色及透明度
-  Color baseColor;
+  Color color;
   double alpha;
-
-  Color get color => baseColor.withOpacity(alpha);
 
   /// 初始化进度
   int progress;
@@ -219,8 +215,8 @@ class Cloud extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(alpha * opacity);
     canvas.drawCircle(center, radius, paint);
   }
 }
@@ -229,22 +225,19 @@ class Thunder extends WeatherElement {
   Thunder({
     this.viewWidth,
     this.viewHeight,
-    this.baseColor = const Color.fromRGBO(255, 255, 255, 1.0),
+    this.color = const Color.fromRGBO(255, 255, 255, 1.0),
     this.duration = 300,
   }) {
     _init();
   }
 
-  Color baseColor;
-
   int progress;
   int duration;
   int delay;
 
-  double viewWidth;
-  double viewHeight;
+  Color color;
 
-  Color get color {
+  double get alpha {
     double alpha;
     if (progress < duration) {
       if (progress < 0.25 * duration) {
@@ -259,8 +252,11 @@ class Thunder extends WeatherElement {
     } else {
       alpha = 0.0;
     }
-    return baseColor.withOpacity(alpha);
+    return alpha;
   }
+
+  double viewWidth;
+  double viewHeight;
 
   void _init() {
     progress = 0;
@@ -276,8 +272,8 @@ class Thunder extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(alpha * opacity);
     canvas.drawRect(Rect.fromLTWH(0.0, 0.0, viewWidth, viewHeight), paint);
   }
 }
@@ -349,8 +345,8 @@ class Rain extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(opacity);
     canvas.save();
     canvas.translate(viewWidth / 2, viewHeight / 2);
     canvas.rotate((rotation2D + 8) * pi / 180);
@@ -426,8 +422,8 @@ class Wind extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(opacity);
     canvas.save();
     canvas.translate(viewWidth / 2, viewHeight / 2);
     canvas.rotate((rotation2D - 16) * pi / 180);
@@ -489,8 +485,8 @@ class Hail extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(opacity);
     path.reset();
     path.moveTo(centerX - size, centerY);
     path.lineTo(centerX, centerY - size);
@@ -566,8 +562,8 @@ class Snow extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(opacity);
     canvas.save();
     canvas.translate(viewWidth / 2, viewHeight / 2);
     canvas.rotate((rotation2D) * pi / 180);
@@ -582,7 +578,7 @@ class Smog extends WeatherElement {
     this.initCX,
     this.initCY,
     this.initRadius,
-    this.baseColor,
+    this.color,
     this.alpha,
     int initProgress,
     this.duration,
@@ -610,10 +606,8 @@ class Smog extends WeatherElement {
   }
 
   /// 颜色及透明度
-  Color baseColor;
+  Color color;
   double alpha;
-
-  Color get color => baseColor.withOpacity(alpha);
 
   /// 初始化进度
   int progress;
@@ -627,8 +621,8 @@ class Smog extends WeatherElement {
   }
 
   @override
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
-    paint.color = color;
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
+    paint.color = color.withOpacity(alpha * opacity);
     canvas.drawCircle(center, radius, paint);
   }
 }

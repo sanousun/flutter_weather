@@ -7,19 +7,26 @@ class WeatherCanvas {
   WeatherCanvas(Size screenSize, this.weatherKind, this.isNight)
       : this.width = screenSize.width,
         this.height = screenSize.height {
-    init();
+    _init();
+  }
+
+  void reset(WeatherKind weatherKind, bool isNight) {
+    this.weatherKind = weatherKind;
+    this.isNight = isNight;
+    this.weatherElements.clear();
+    _init();
   }
 
   final double width;
   final double height;
-  final WeatherKind weatherKind;
-  final bool isNight;
+  WeatherKind weatherKind;
+  bool isNight;
 
   Random random = Random();
   List<WeatherElement> weatherElements = <WeatherElement>[];
   Color backgroundColor;
 
-  void init() {
+  void _init() {
     _buildBackground();
     _buildSun();
     _buildStars();
@@ -144,7 +151,7 @@ class WeatherCanvas {
             centerX: x,
             centerY: y,
             initRadius: radius,
-            baseColor: color,
+            color: color,
             initProgress: random.nextInt(duration),
             duration: duration));
       }
@@ -236,7 +243,7 @@ class WeatherCanvas {
           initCX: width * widthRate[i],
           initCY: width * heightRate[i],
           initRadius: width * radiusRate[i],
-          baseColor: cloudColor,
+          color: cloudColor,
           scale: i > 2 ? cloudScale[1] : cloudScale[0],
           alpha: i > 2 ? cloudAlpha[1] : cloudAlpha[0],
           initProgress: r.nextInt(7000),
@@ -414,7 +421,7 @@ class WeatherCanvas {
           initCX: cX,
           initCY: cY,
           initRadius: width * scales[i],
-          baseColor: color,
+          color: color,
           alpha: alpha,
           initProgress: 0,
           duration: 5000,
@@ -429,13 +436,13 @@ class WeatherCanvas {
     }
   }
 
-  void paint(Canvas canvas, Paint paint, double rotation2D) {
+  void paint(Canvas canvas, Paint paint, double rotation2D, double opacity) {
     // 背景绘制
-    paint.color = backgroundColor;
+    paint.color = backgroundColor.withOpacity(opacity);
     canvas.drawRect(Rect.fromLTWH(0.0, 0.0, width, height), paint);
     // 元素绘制
     for (WeatherElement element in weatherElements) {
-      element.paint(canvas, paint, rotation2D);
+      element.paint(canvas, paint, rotation2D, opacity);
     }
   }
 }

@@ -125,6 +125,8 @@ class WeatherNow {
   /// 风力
   String windSc;
 
+  String get windScDesc => windSc.contains('风') ? windSc : windSc + '级';
+
   /// 风速，公里/小时
   String windSpd;
 
