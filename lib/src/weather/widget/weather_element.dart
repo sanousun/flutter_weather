@@ -24,8 +24,8 @@ class Sun extends WeatherElement {
   double alpha;
   double viewWidth;
   double viewHeight;
-  double deltaX;
-  double deltaY;
+  double deltaX = 0.0;
+  double deltaY = 0.0;
 
   @override
   void paint(Canvas canvas, Paint paint, double rotation2D) {

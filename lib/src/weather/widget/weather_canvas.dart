@@ -104,9 +104,9 @@ class WeatherCanvas {
     if (!isNight && weatherKind == WeatherKind.clear) {
       Color color = Color.fromRGBO(253, 84, 17, 1.0);
       List<double> speeds = <double>[
-        90 / 60000,
-        90 / 80000,
-        90 / 100000,
+        pi / 3000,
+        pi / 4000,
+        pi / 5000,
       ];
       List<double> sizes = <double>[
         0.5 * 0.47 * width,
