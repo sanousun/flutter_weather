@@ -29,8 +29,8 @@ Future<List<City>> areaSearch(String location) async {
   }
 }
 
-Future<WeatherNow> getWeatherNow(String location) async {
-  final uri = Uri.https('free-api.heweather.com', '/s6/weather/now', {
+Future<Weather> getWeatherNow(String location) async {
+  final uri = Uri.https('free-api.heweather.com', '/s6/weather', {
     'key': '255bfaa117cd42799e185957e9714916',
     'location': location,
   });
@@ -40,9 +40,9 @@ Future<WeatherNow> getWeatherNow(String location) async {
     final data = res['HeWeather6'][0];
     String status = data['status'];
     if (status == 'ok') {
-      return WeatherNow.fromJson(data['now']);
+      return Weather.fromJson(data);
     } else {
-      throw Exception((data['status'] as String));
+      throw Exception((data['status']));
     }
   } else {
     throw Exception(response.statusCode);

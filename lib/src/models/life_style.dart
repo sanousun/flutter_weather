@@ -1,4 +1,9 @@
 class LifeStyle{
+  LifeStyle.fromJson(Map<dynamic,dynamic> json){
+    brf = json['brf'];
+    txt = json['txt'];
+    type = json['type'];
+  }
   /// 生活指数简介
   String brf;
   /// 生活指数详细描述
