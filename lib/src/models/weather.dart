@@ -19,6 +19,13 @@ class Weather {
         .toList();
   }
 
+  bool get isNight {
+    if (weatherForecasts != null && weatherForecasts.length > 0) {
+      var today = weatherForecasts[0];
+    }
+    return false;
+  }
+
   WeatherNow weatherNow;
   List<WeatherForecast> weatherForecasts;
   List<WeatherHourly> weatherHourlys;

@@ -7,21 +7,55 @@ import 'widget/weather_bg_widget.dart';
 import '../api/api.dart';
 import '../models/weather.dart';
 import '../models/life_style.dart';
+import '../models/city.dart';
+import '../city/city_provider.dart';
+import '../city/city_bloc.dart';
 import '../city/city_page.dart';
 
-class WeatherPage extends StatefulWidget {
+class WeatherPage extends StatelessWidget {
   @override
-  State<StatefulWidget> createState() => WeatherPageState();
+  Widget build(BuildContext context) {
+    CityBloc cityBloc = CityProvider.of(context);
+    return StreamBuilder<City>(
+      stream: cityBloc.city,
+      initialData: null,
+      builder: (BuildContext context, AsyncSnapshot<City> snapshot) {
+        return WeatherRefreshPage(snapshot?.data?.location ?? "");
+      },
+    );
+  }
 }
 
-class WeatherPageState extends State<WeatherPage> {
+class WeatherRefreshPage extends StatefulWidget {
+  WeatherRefreshPage(this.location);
+
+  final String location;
+
+  @override
+  State<StatefulWidget> createState() => WeatherRefreshPageState();
+}
+
+class WeatherRefreshPageState extends State<WeatherRefreshPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-  final GlobalKey<ScaffoldState> _ScaffoldKey = GlobalKey<ScaffoldState>();
 
-  double currentOffset;
-  String location = "杭州";
   Weather weather;
+
+  Future<Null> _handleRefresh() async {
+    if (widget.location.isEmpty) {
+      return;
+    }
+    _refreshIndicatorKey.currentState?.show();
+    getWeatherNow(widget.location).then(
+        (weather) => setState(() {
+              this.weather = weather;
+            }), onError: (e) {
+      _scaffoldKey.currentState?.showSnackBar(SnackBar(
+        content: Text(e.toString()),
+      ));
+    });
+  }
 
   @override
   void initState() {
@@ -30,17 +64,25 @@ class WeatherPageState extends State<WeatherPage> {
   }
 
   @override
+  void didUpdateWidget(WeatherRefreshPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.location != oldWidget.location) {
+      _handleRefresh();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WeatherBgWidget(
       weatherKind: weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear,
       isNight: false,
       child: Scaffold(
-        key: _ScaffoldKey,
+        key: _scaffoldKey,
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           elevation: 0.0,
           backgroundColor: Colors.transparent,
-          title: Text(location),
+          title: Text(widget.location),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.location_city),
@@ -56,76 +98,73 @@ class WeatherPageState extends State<WeatherPage> {
         ),
         body: RefreshIndicator(
           key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
           child: NotificationListener<ScrollNotification>(
-            child: ListView(
-              children: _buildWeatherList(),
-            ),
+            child: WeatherContentPage(weather),
             onNotification: (scrollInfo) {
-              print(scrollInfo.metrics.pixels);
+              print("${scrollInfo.metrics.pixels}");
               print(scrollInfo.metrics.maxScrollExtent);
             },
           ),
-          onRefresh: _handleRefresh,
         ),
       ),
     );
   }
+}
 
-  Future<Null> _handleRefresh() async {
-    _refreshIndicatorKey.currentState?.show();
-    getWeatherNow(location).then(
-        (weather) => setState(() {
-              this.weather = weather;
-            }), onError: (e) {
-      _ScaffoldKey.currentState?.showSnackBar(SnackBar(
-        content: Text(e.toString()),
-      ));
-    });
+class WeatherContentPage extends StatelessWidget {
+  WeatherContentPage(this.weather);
+
+  final Weather weather;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: _buildWeatherList(),
+    );
   }
 
   List<Widget> _buildWeatherList() {
     if (weather == null) {
-      return <Widget>[
-        Center(
-          child: Text(" "),
-        ),
-      ];
-    } else {
-      return <Widget>[
-        SizedBox(
-          height: 320.0,
-        ),
-        _buildWeatherNow(weather.weatherNow),
-        const SizedBox(
-          height: 56.0,
-        ),
-        Container(
-          height: 160.0,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: weather.weatherHourlys
-                .map((weatherHourly) => _buildHourly(weatherHourly))
-                .toList(),
-          ),
-        ),
-        const SizedBox(
-          height: 32.0,
-        ),
-        Column(
-          children: weather.weatherForecasts
-              .map((weatherForecast) => _buildWeatherForecast(weatherForecast))
-              .toList(),
-        ),
-        const SizedBox(
-          height: 16.0,
-        ),
-        Column(
-          children: weather.lifeStyles
-              .map((lifeStyle) => _buildLifeStyle(lifeStyle))
-              .toList(),
-        )
-      ];
+      return <Widget>[Text('')];
     }
+    return <Widget>[
+      SizedBox(
+        height: 320.0,
+      ),
+      _buildWeatherNow(weather.weatherNow),
+      const SizedBox(
+        height: 56.0,
+      ),
+      Container(
+        height: 160.0,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: weather.weatherHourlys
+              .map((weatherHourly) => _buildHourly(weatherHourly))
+              .toList(),
+        ),
+      ),
+      const SizedBox(
+        height: 24.0,
+      ),
+      Column(
+        children: weather.weatherForecasts
+            .map((weatherForecast) => _buildWeatherForecast(weatherForecast))
+            .toList(),
+      ),
+      const SizedBox(
+        height: 24.0,
+      ),
+      Column(
+        children: weather.lifeStyles
+            .map((lifeStyle) => _buildLifeStyle(lifeStyle))
+            .toList(),
+      ),
+      const SizedBox(
+        height: 16.0,
+      ),
+    ];
   }
 
   Widget _buildWeatherNow(WeatherNow weatherNow) {
@@ -133,14 +172,14 @@ class WeatherPageState extends State<WeatherPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Text(
-          "${weather.weatherNow.condTxt}",
+          "${weatherNow.condTxt}",
           style: TextStyle(
             fontSize: 18.0,
             color: Colors.white,
           ),
         ),
         Text(
-          "${weather.weatherNow.tmp}℃",
+          "${weatherNow.tmp}℃",
           style: TextStyle(
             fontSize: 64.0,
             fontWeight: FontWeight.w300,
@@ -148,7 +187,7 @@ class WeatherPageState extends State<WeatherPage> {
           ),
         ),
         Text(
-          "${weather.weatherNow.windDir} ${weather.weatherNow.windScDesc}",
+          "${weatherNow.windDir} ${weatherNow.windScDesc}",
           style: TextStyle(
             fontSize: 14.0,
             color: Colors.white.withOpacity(0.8),
@@ -228,7 +267,7 @@ class WeatherPageState extends State<WeatherPage> {
 
   Widget _buildLifeStyle(LifeStyle lifeStyle) {
     return ListTile(
-      title: Text(lifeStyle.brf),
+      title: Text("${lifeStyle.brf} : ${lifeStyle.typeDesc}"),
       subtitle: Text(lifeStyle.txt),
     );
   }

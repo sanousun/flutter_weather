@@ -43,7 +43,10 @@ class CityPage extends StatelessWidget {
                   return ListTile(
                     title: Text(city.location),
                     subtitle: Text(city.desc),
-                    onTap: () {},
+                    onTap: () {
+                      cityBloc.cityChoose.add(city);
+                      Navigator.of(context).pop();
+                    },
                   );
                 } else {
                   return Divider(

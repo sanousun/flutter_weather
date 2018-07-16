@@ -48,3 +48,4 @@ Future<Weather> getWeatherNow(String location) async {
     throw Exception(response.statusCode);
   }
 }
+
