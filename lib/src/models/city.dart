@@ -29,7 +29,7 @@ class City {
 
   City(this.location);
 
-  Map toMap() {
+  Map<String, dynamic> toMap() {
     return {
       CID: cid,
       LOCATION: location,
@@ -89,14 +89,15 @@ class City {
 class CityDbProvider {
   Database db;
 
-  Future open(String path) async {
+  Future open() async {
+    String path = await getDatabasesPath();
     db = await openDatabase(
-      path,
+      "$path/weather.db",
       version: 1,
       onCreate: (db, version) async {
         await db.execute('''
         create table $TABLE_CITY(
-          $ID integer integer primary key autoincrement,
+          $ID integer primary key autoincrement,
           $CID varchar(32) not null,
           $LOCATION varchar(64) not null,
           $PARENT_CITY varchar(64) ,
@@ -108,6 +109,10 @@ class CityDbProvider {
         ''');
       },
     );
+  }
+
+  Future close() async {
+    await db.close();
   }
 
   Future<City> insert(City city) async {

@@ -26,9 +26,10 @@ class CityBloc {
     _cityAdditionController.stream.listen(_handleAddition);
     _cityStepChooseController.stream.listen(_handleStepChoose);
     _cityChooseController.stream.listen(_handleChoose);
-    cityAddition.add(CityAddition(City("北京"), true));
-    cityAddition.add(CityAddition(City("杭州"), true));
-    cityAddition.add(CityAddition(City("上海"), true));
+    _cityCollection.init().then((value) {
+      _cities.add(_cityCollection.cities);
+      _currentCity.add(_cityCollection.currentCity);
+    });
   }
 
   Sink<CityAddition> get cityAddition => _cityAdditionController.sink;
@@ -45,16 +46,20 @@ class CityBloc {
     _cityAdditionController.close();
     _cityStepChooseController.close();
     _cityChooseController.close();
+    _cityCollection.dispose();
   }
 
   void _handleAddition(CityAddition cityAddition) {
+    Future future;
     if (cityAddition.isAdd) {
-      _cityCollection.addCity(cityAddition.city);
+      future = _cityCollection.addCity(cityAddition.city);
     } else {
-      _cityCollection.removeCity(cityAddition.city);
+      future = _cityCollection.removeCity(cityAddition.city);
     }
-    _cities.add(_cityCollection.cities);
-    _currentCity.add(_cityCollection.currentCity);
+    future.then((dynamic) {
+      _cities.add(_cityCollection.cities);
+      _currentCity.add(_cityCollection.currentCity);
+    });
   }
 
   void _handleStepChoose(ChooseStep step) {
