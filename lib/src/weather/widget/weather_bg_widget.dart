@@ -2,17 +2,29 @@ import 'package:flutter/material.dart';
 import 'weather_widget.dart';
 
 class WeatherBgWidget extends StatelessWidget {
-  WeatherBgWidget({this.child, this.weatherKind, this.isNight});
+  WeatherBgWidget({
+    this.child,
+    this.weatherKind = WeatherKind.clear,
+    this.isNight = false,
+    this.opacity = 1.0,
+  });
 
   final Widget child;
   final WeatherKind weatherKind;
   final bool isNight;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
-        _buildWeatherBg(context),
+        Container(
+          color: isNight ? Colors.black : Colors.white,
+        ),
+        Opacity(
+          opacity: opacity,
+          child: _buildWeatherBg(context),
+        ),
         child,
       ],
     );

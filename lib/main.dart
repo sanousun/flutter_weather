@@ -16,9 +16,7 @@ class MyApp extends StatelessWidget {
     return CityProvider(
       child: MaterialApp(
         title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        theme: ThemeData.dark(),
         routes: {
           '/': (context) => WeatherPage(),
           CityPage.routeName: (context) => CityPage(),

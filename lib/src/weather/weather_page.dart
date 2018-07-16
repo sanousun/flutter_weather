@@ -40,15 +40,17 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
 
+  double verticalOffsetPercent = 0.0;
   Weather weather;
-  double horizontalOffset = 0.0;
-  double horizontalTotal = 0.0;
 
   Future<Null> _handleRefresh() async {
     if (widget.location.isEmpty) {
       return;
     }
     _refreshIndicatorKey.currentState?.show();
+    setState(() {
+      this.weather = null;
+    });
     getWeatherNow(widget.location).then(
         (weather) => setState(() {
               this.weather = weather;
@@ -75,27 +77,32 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
 
   @override
   Widget build(BuildContext context) {
-    horizontalTotal = MediaQuery.of(context).size.width;
-    CityBloc cityBloc = CityProvider.of(context);
     return WeatherBgWidget(
       weatherKind: weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear,
       isNight: false,
+      opacity: 1 - verticalOffsetPercent / 2,
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           elevation: 0.0,
           backgroundColor: Colors.transparent,
-          title: Text(widget.location),
+          title: Text(
+            widget.location,
+          ),
           actions: <Widget>[
             IconButton(
-              icon: Icon(Icons.location_city),
+              icon: Icon(
+                Icons.location_city,
+              ),
               onPressed: () {
                 Navigator.of(context).pushNamed(CityPage.routeName);
               },
             ),
             IconButton(
-              icon: Icon(Icons.info),
+              icon: Icon(
+                Icons.info,
+              ),
               onPressed: () {},
             )
           ],
@@ -103,65 +110,74 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
         body: RefreshIndicator(
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
-          child: NotificationListener<ScrollNotification>(
-            child: GestureDetector(
-              onHorizontalDragStart: (details) {
-                setState(() {
-                  horizontalOffset = 0.0;
-                });
-              },
-              onHorizontalDragUpdate: (details) {
-                setState(() {
-                  horizontalOffset += details.delta.dx;
-                });
-              },
-              onHorizontalDragEnd: (details) {
-                if (horizontalOffset > (horizontalTotal / 3)) {
-                  cityBloc.cityStepChoose.add(ChooseStep.previous);
-                } else if (horizontalOffset < (-horizontalTotal / 3)) {
-                  cityBloc.cityStepChoose.add(ChooseStep.next);
-                } else {
-                  setState(() {});
-                }
-                horizontalOffset = 0.0;
-              },
-              child: Opacity(
-                opacity: 1 - (horizontalOffset / horizontalTotal).abs(),
-                child: WeatherContentPage(weather),
-              ),
-            ),
-            onNotification: (scrollInfo) {
-//              print("${scrollInfo.metrics.pixels}");
-//              print(scrollInfo.metrics.maxScrollExtent);
-            },
-          ),
+          child: WeatherContentPage(weather),
         ),
       ),
     );
   }
 }
 
-class WeatherContentPage extends StatelessWidget {
+class WeatherContentPage extends StatefulWidget {
   WeatherContentPage(this.weather);
 
   final Weather weather;
 
   @override
+  State<StatefulWidget> createState() => WeatherContentPageState();
+}
+
+class WeatherContentPageState extends State<WeatherContentPage> {
+  double horizontalOffset = 0.0;
+  double horizontalTotal = 0.0;
+
+  @override
+  void didUpdateWidget(WeatherContentPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: _buildWeatherList(),
+    horizontalTotal = MediaQuery.of(context).size.width;
+    CityBloc cityBloc = CityProvider.of(context);
+    return GestureDetector(
+      onHorizontalDragStart: (details) {
+        setState(() {
+          horizontalOffset = 0.0;
+        });
+      },
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          horizontalOffset += details.delta.dx;
+        });
+      },
+      onHorizontalDragEnd: (details) {
+        if (horizontalOffset > (horizontalTotal / 3)) {
+          cityBloc.cityStepChoose.add(ChooseStep.previous);
+        } else if (horizontalOffset < (-horizontalTotal / 3)) {
+          cityBloc.cityStepChoose.add(ChooseStep.next);
+        } else {
+          setState(() {});
+        }
+        horizontalOffset = 0.0;
+      },
+      child: Opacity(
+        opacity: 1 - (horizontalOffset / horizontalTotal).abs(),
+        child: ListView(
+          children: _buildWeatherList(),
+        ),
+      ),
     );
   }
 
   List<Widget> _buildWeatherList() {
-    if (weather == null) {
+    if (widget.weather == null) {
       return <Widget>[Text('')];
     }
     return <Widget>[
       SizedBox(
         height: 320.0,
       ),
-      _buildWeatherNow(weather.weatherNow),
+      _buildWeatherNow(widget.weather.weatherNow),
       const SizedBox(
         height: 56.0,
       ),
@@ -169,16 +185,16 @@ class WeatherContentPage extends StatelessWidget {
         height: 160.0,
         child: ListView(
           scrollDirection: Axis.horizontal,
-          children: weather.weatherHourlys
+          children: widget.weather.weatherHourlys
               .map((weatherHourly) => _buildHourly(weatherHourly))
               .toList(),
         ),
       ),
       const SizedBox(
-        height: 24.0,
+        height: 16.0,
       ),
       Column(
-        children: weather.weatherForecasts
+        children: widget.weather.weatherForecasts
             .map((weatherForecast) => _buildWeatherForecast(weatherForecast))
             .toList(),
       ),
@@ -186,7 +202,7 @@ class WeatherContentPage extends StatelessWidget {
         height: 24.0,
       ),
       Column(
-        children: weather.lifeStyles
+        children: widget.weather.lifeStyles
             .map((lifeStyle) => _buildLifeStyle(lifeStyle))
             .toList(),
       ),
@@ -204,7 +220,6 @@ class WeatherContentPage extends StatelessWidget {
           "${weatherNow.condTxt}",
           style: TextStyle(
             fontSize: 18.0,
-            color: Colors.white,
           ),
         ),
         Text(
@@ -212,14 +227,12 @@ class WeatherContentPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 64.0,
             fontWeight: FontWeight.w300,
-            color: Colors.white,
           ),
         ),
         Text(
           "${weatherNow.windDir} ${weatherNow.windScDesc}",
           style: TextStyle(
             fontSize: 14.0,
-            color: Colors.white.withOpacity(0.8),
           ),
         )
       ],
@@ -236,7 +249,7 @@ class WeatherContentPage extends StatelessWidget {
             weatherHourly.time.substring(10),
             style: TextStyle(
               fontSize: 12.0,
-              color: Colors.white.withOpacity(0.6),
+              fontWeight: FontWeight.w300,
             ),
           ),
           SizedBox(
@@ -254,7 +267,6 @@ class WeatherContentPage extends StatelessWidget {
             "${weatherHourly.tmp}℃",
             style: TextStyle(
               fontSize: 14.0,
-              color: Colors.white.withOpacity(0.8),
             ),
           ),
         ],
@@ -272,7 +284,6 @@ class WeatherContentPage extends StatelessWidget {
             weatherForecast.date,
             style: TextStyle(
               fontSize: 16.0,
-              color: Colors.white.withOpacity(0.8),
             ),
           ),
           Expanded(
@@ -286,7 +297,6 @@ class WeatherContentPage extends StatelessWidget {
             "${weatherForecast.tmpMax}℃/${weatherForecast.tmpMin}℃",
             style: TextStyle(
               fontSize: 16.0,
-              color: Colors.white.withOpacity(0.8),
             ),
           ),
         ],
@@ -296,7 +306,7 @@ class WeatherContentPage extends StatelessWidget {
 
   Widget _buildLifeStyle(LifeStyle lifeStyle) {
     return ListTile(
-      title: Text("${lifeStyle.brf} : ${lifeStyle.typeDesc}"),
+      title: Text("${lifeStyle.typeDesc}：${lifeStyle.brf}"),
       subtitle: Text(lifeStyle.txt),
     );
   }
