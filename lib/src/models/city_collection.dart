@@ -28,7 +28,7 @@ class CityCollection {
   }
 
   void previousCity() {
-    _curIndex == (_curIndex + _cityList.length--) % _cityList.length;
+    _curIndex = (_curIndex + _cityList.length - 1) % _cityList.length;
   }
 
   void nextCity() {

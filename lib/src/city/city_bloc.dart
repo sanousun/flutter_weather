@@ -19,7 +19,7 @@ class CityBloc {
   final _currentCity = BehaviorSubject<City>();
 
   final _cityAdditionController = StreamController<CityAddition>();
-  final _cityStepChooseController = StreamController<bool>();
+  final _cityStepChooseController = StreamController<ChooseStep>();
   final _cityChooseController = StreamController<City>();
 
   CityBloc() {
@@ -27,13 +27,15 @@ class CityBloc {
     _cityStepChooseController.stream.listen(_handleStepChoose);
     _cityChooseController.stream.listen(_handleChoose);
     cityAddition.add(CityAddition(City("北京"), true));
+    cityAddition.add(CityAddition(City("杭州"), true));
+    cityAddition.add(CityAddition(City("上海"), true));
   }
 
   Sink<CityAddition> get cityAddition => _cityAdditionController.sink;
 
   Sink<City> get cityChoose => _cityChooseController.sink;
 
-  Sink<bool> get cityStepChoose => _cityStepChooseController.sink;
+  Sink<ChooseStep> get cityStepChoose => _cityStepChooseController.sink;
 
   Stream<List<City>> get items => _cities.stream;
 
@@ -55,8 +57,8 @@ class CityBloc {
     _currentCity.add(_cityCollection.currentCity);
   }
 
-  void _handleStepChoose(bool next) {
-    if (next) {
+  void _handleStepChoose(ChooseStep step) {
+    if (step == ChooseStep.next) {
       _cityCollection.nextCity();
     } else {
       _cityCollection.previousCity();
@@ -71,3 +73,5 @@ class CityBloc {
     }
   }
 }
+
+enum ChooseStep { next, previous }

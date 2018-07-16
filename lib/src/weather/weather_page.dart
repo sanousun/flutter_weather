@@ -41,6 +41,8 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
       GlobalKey<RefreshIndicatorState>();
 
   Weather weather;
+  double horizontalOffset = 0.0;
+  double horizontalTotal = 0.0;
 
   Future<Null> _handleRefresh() async {
     if (widget.location.isEmpty) {
@@ -73,6 +75,8 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
 
   @override
   Widget build(BuildContext context) {
+    horizontalTotal = MediaQuery.of(context).size.width;
+    CityBloc cityBloc = CityProvider.of(context);
     return WeatherBgWidget(
       weatherKind: weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear,
       isNight: false,
@@ -100,10 +104,35 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
           child: NotificationListener<ScrollNotification>(
-            child: WeatherContentPage(weather),
+            child: GestureDetector(
+              onHorizontalDragStart: (details) {
+                setState(() {
+                  horizontalOffset = 0.0;
+                });
+              },
+              onHorizontalDragUpdate: (details) {
+                setState(() {
+                  horizontalOffset += details.delta.dx;
+                });
+              },
+              onHorizontalDragEnd: (details) {
+                if (horizontalOffset > (horizontalTotal / 3)) {
+                  cityBloc.cityStepChoose.add(ChooseStep.previous);
+                } else if (horizontalOffset < (-horizontalTotal / 3)) {
+                  cityBloc.cityStepChoose.add(ChooseStep.next);
+                } else {
+                  setState(() {});
+                }
+                horizontalOffset = 0.0;
+              },
+              child: Opacity(
+                opacity: 1 - (horizontalOffset / horizontalTotal).abs(),
+                child: WeatherContentPage(weather),
+              ),
+            ),
             onNotification: (scrollInfo) {
-              print("${scrollInfo.metrics.pixels}");
-              print(scrollInfo.metrics.maxScrollExtent);
+//              print("${scrollInfo.metrics.pixels}");
+//              print(scrollInfo.metrics.maxScrollExtent);
             },
           ),
         ),
