@@ -96,10 +96,10 @@ class Meteor extends WeatherElement {
     this.viewWidth,
     this.viewHeight,
   })  : this.canvasSize = pow(pow(viewWidth, 2) + pow(viewHeight, 2), 0.5),
-        this.speed = viewHeight / 500,
-        this.maxHeight = (1.1 * viewWidth / cos(60.0 * pi / 180.0)),
-        this.minHeight = (1.1 * viewWidth / cos(60.0 * pi / 180.0)) * 0.7,
-        this.width = viewWidth * 0.0088 * scale {
+        this.speed = viewHeight / 250,
+        this.maxHeight = (0.5 * viewWidth / cos(60.0 * pi / 180.0)),
+        this.minHeight = (0.5 * viewWidth / cos(60.0 * pi / 180.0)) * 0.7,
+        this.width = viewWidth * 0.003 * scale {
     _init(true);
   }
 

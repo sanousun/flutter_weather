@@ -166,7 +166,7 @@ class WeatherCanvas {
         Color.fromRGBO(255, 255, 255, 1.0)
       ];
       List<double> scales = <double>[0.4, 0.7, 1.0];
-      for (int i = 0; i < 15; i++) {
+      for (int i = 0; i < 3; i++) {
         weatherElements.add(Meteor(
           color: colors[i % 3],
           scale: scales[i % 3],

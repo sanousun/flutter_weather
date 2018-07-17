@@ -14,6 +14,10 @@ import '../city/city_bloc.dart';
 import '../city/city_page.dart';
 
 class WeatherPage extends StatelessWidget {
+  WeatherPage(this.isNight);
+
+  final bool isNight;
+
   @override
   Widget build(BuildContext context) {
     CityBloc cityBloc = CityProvider.of(context);
@@ -25,6 +29,7 @@ class WeatherPage extends StatelessWidget {
         return WeatherRefreshPage(
           city?.location,
           city?.id == null ? true : false,
+          this.isNight,
         );
       },
     );
@@ -32,10 +37,11 @@ class WeatherPage extends StatelessWidget {
 }
 
 class WeatherRefreshPage extends StatefulWidget {
-  WeatherRefreshPage(this.location, this.isLocal);
+  WeatherRefreshPage(this.location, this.isLocal, this.isNight);
 
   final String location;
   final bool isLocal;
+  final bool isNight;
 
   @override
   State<StatefulWidget> createState() => WeatherRefreshPageState();
@@ -111,7 +117,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
     Color titleColor = theme.textTheme.title.color.withOpacity(0.8);
     return WeatherBgWidget(
       weatherKind: weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear,
-      isNight: false,
+      isNight: widget.isNight,
       opacity: 1 - verticalOffsetPercent / 2,
       child: Scaffold(
         key: _scaffoldKey,
@@ -237,8 +243,9 @@ class WeatherContentPageState extends State<WeatherContentPage> {
       const SizedBox(
         height: 56.0,
       ),
+      Divider(),
       Container(
-        height: 150.0,
+        height: 120.0,
         child: ListView(
           scrollDirection: Axis.horizontal,
           children: widget.weather.weatherHourlys
@@ -254,7 +261,7 @@ class WeatherContentPageState extends State<WeatherContentPage> {
             .toList(),
       ),
       const SizedBox(
-        height: 24.0,
+        height: 8.0,
       ),
       Column(
         children: widget.weather.lifeStyles
