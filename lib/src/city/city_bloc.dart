@@ -26,7 +26,16 @@ class CityBloc {
     _cityAdditionController.stream.listen(_handleAddition);
     _cityStepChooseController.stream.listen(_handleStepChoose);
     _cityChooseController.stream.listen(_handleChoose);
-    _cityCollection.init().then((value) {
+  }
+
+  void addLocationCity(City city) {
+    _cityCollection.addCityLocation(city);
+    _cities.add(_cityCollection.cities);
+    _currentCity.add(_cityCollection.currentCity);
+  }
+
+  void initDbData() {
+    _cityCollection.initDb().then((value) {
       _cities.add(_cityCollection.cities);
       _currentCity.add(_cityCollection.currentCity);
     });

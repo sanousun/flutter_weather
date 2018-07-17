@@ -29,6 +29,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [
+                "amap_api_key": "874b111a877998ae52442560ff4de443"
+        ]
     }
 
     buildTypes {
@@ -48,4 +51,6 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    implementation 'com.amap.api:location:4.1.0'
+    
 }

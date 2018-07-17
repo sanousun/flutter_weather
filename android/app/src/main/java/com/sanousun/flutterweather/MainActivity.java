@@ -1,13 +1,22 @@
 package com.sanousun.flutterweather;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import io.flutter.app.FlutterActivity;
@@ -18,6 +27,9 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 public class MainActivity extends FlutterActivity {
 
     private static final String CHANNEL_SENSOR = "com.sanousun.flutterweather/sensor";
+    private static final String CHANNEL_LOCATION = "com.sanousun.flutterweather/location";
+
+    private static final int REQUEST_LOCATION_CODE = 0x19;
 
     private boolean mIsOpenGravitySensor;
     private SensorManager mSensorManager;
@@ -54,6 +66,27 @@ public class MainActivity extends FlutterActivity {
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
             // 空实现
+        }
+    };
+
+    private MethodChannel.Result mLocationResult;
+
+    private AMapLocationListener mLocationListener = new AMapLocationListener() {
+        @Override
+        public void onLocationChanged(AMapLocation aMapLocation) {
+            if (mLocationResult != null) {
+                if (aMapLocation != null) {
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("location", aMapLocation.getDistrict());
+                    map.put("parent_city", aMapLocation.getCity());
+                    map.put("admin_area", aMapLocation.getProvince());
+                    map.put("cnty", aMapLocation.getCountry());
+                    mLocationResult.success(map);
+                } else {
+                    mLocationResult.error("location failed", "定位失败", null);
+                }
+            }
+            mLocationResult = null;
         }
     };
 
@@ -96,5 +129,56 @@ public class MainActivity extends FlutterActivity {
                         }
                     }
                 });
+
+
+        new MethodChannel(getFlutterView(), CHANNEL_LOCATION)
+                .setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+                    @Override
+                    public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
+                        switch (methodCall.method) {
+                            case "getLocation":
+                                mLocationResult = result;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                            != PackageManager.PERMISSION_GRANTED) {
+                                        requestPermissions(
+                                                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                                                REQUEST_LOCATION_CODE);//自定义的code
+                                    } else {
+                                        startLocation();
+                                    }
+                                } else {
+                                    startLocation();
+                                }
+                                break;
+                            default:
+                                result.notImplemented();
+                        }
+                    }
+                });
+    }
+
+    private void startLocation() {
+        AMapLocationClientOption locationOption =
+                new AMapLocationClientOption();
+        locationOption.setOnceLocation(true);
+        AMapLocationClient locationClient =
+                new AMapLocationClient(MainActivity.this);
+        locationClient.setLocationListener(mLocationListener);
+        locationClient.setLocationOption(locationOption);
+        locationClient.startLocation();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startLocation();
+            } else {
+                mLocationResult.error("permission denied", "定位权限被拒绝", null);
+                mLocationResult = null;
+            }
+        }
     }
 }

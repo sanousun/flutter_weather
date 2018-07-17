@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'widget/weather_bg_widget.dart';
 
@@ -20,7 +21,7 @@ class WeatherPage extends StatelessWidget {
       stream: cityBloc.city,
       initialData: null,
       builder: (BuildContext context, AsyncSnapshot<City> snapshot) {
-        return WeatherRefreshPage(snapshot?.data?.location ?? "");
+        return WeatherRefreshPage(snapshot?.data?.location);
       },
     );
   }
@@ -36,6 +37,9 @@ class WeatherRefreshPage extends StatefulWidget {
 }
 
 class WeatherRefreshPageState extends State<WeatherRefreshPage> {
+  static const _platform =
+      const MethodChannel('com.sanousun.flutterweather/location');
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -44,7 +48,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   Weather weather;
 
   Future<Null> _handleRefresh() async {
-    if (widget.location.isEmpty) {
+    if (widget.location == null || widget.location.isEmpty) {
       return;
     }
     _refreshIndicatorKey.currentState?.show();
@@ -61,10 +65,32 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
     });
   }
 
+  void startLocation() {
+    CityBloc cityBloc = CityProvider.of(context);
+    _platform.invokeMethod("getLocation").then((map) {
+      City city = City.fromJson(map);
+      cityBloc.addLocationCity(city);
+      cityBloc.initDbData();
+    }, onError: (e) {
+      _scaffoldKey.currentState?.showSnackBar(SnackBar(
+        content: Text(e.toString()),
+      ));
+      cityBloc.addLocationCity(City("杭州"));
+      cityBloc.initDbData();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _handleRefresh();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // 这里才可以调用 BuildContext.inheritFromWidgetOfExactType，
+    // 因为要操作 cityProvider 还是在这里请求定位，而不是initState
+    super.didChangeDependencies();
+    startLocation();
   }
 
   @override
@@ -88,7 +114,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
           elevation: 0.0,
           backgroundColor: Colors.transparent,
           title: Text(
-            widget.location,
+            widget.location ?? "定位中...",
           ),
           actions: <Widget>[
             IconButton(

@@ -13,10 +13,9 @@ class CityCollection {
 
   List<City> get cities => <City>[]..addAll(_cityList);
 
-  Future init() async {
+  Future initDb() async {
     await _dbProvider.open();
     List<City> cities = await _dbProvider.getAll();
-    _cityList.add(City("成都"));
     _cityList.addAll(cities);
   }
 
@@ -27,6 +26,10 @@ class CityCollection {
   Future addCity(City city) async {
     City newCity = await _dbProvider.insert(city);
     _cityList.add(newCity);
+  }
+
+  void addCityLocation(City city) {
+    _cityList.add(city);
   }
 
   Future removeCity(City city) async {
