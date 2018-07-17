@@ -21,16 +21,21 @@ class WeatherPage extends StatelessWidget {
       stream: cityBloc.city,
       initialData: null,
       builder: (BuildContext context, AsyncSnapshot<City> snapshot) {
-        return WeatherRefreshPage(snapshot?.data?.location);
+        City city = snapshot?.data;
+        return WeatherRefreshPage(
+          city?.location,
+          city?.id == null ? true : false,
+        );
       },
     );
   }
 }
 
 class WeatherRefreshPage extends StatefulWidget {
-  WeatherRefreshPage(this.location);
+  WeatherRefreshPage(this.location, this.isLocal);
 
   final String location;
+  final bool isLocal;
 
   @override
   State<StatefulWidget> createState() => WeatherRefreshPageState();
@@ -46,6 +51,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
 
   double verticalOffsetPercent = 0.0;
   Weather weather;
+  bool isNeedData = true;
 
   Future<Null> _handleRefresh() async {
     if (widget.location == null || widget.location.isEmpty) {
@@ -66,6 +72,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   }
 
   void startLocation() {
+    print("startLocation");
     CityBloc cityBloc = CityProvider.of(context);
     _platform.invokeMethod("getLocation").then((map) {
       City city = City.fromJson(map);
@@ -83,14 +90,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   @override
   void initState() {
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    // 这里才可以调用 BuildContext.inheritFromWidgetOfExactType，
-    // 因为要操作 cityProvider 还是在这里请求定位，而不是initState
-    super.didChangeDependencies();
-    startLocation();
+    // 无法进行 startLocation 因为获取不到 context
   }
 
   @override
@@ -103,6 +103,12 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isNeedData) {
+      startLocation();
+      isNeedData = false;
+    }
+    ThemeData theme = Theme.of(context);
+    Color titleColor = theme.textTheme.title.color.withOpacity(0.8);
     return WeatherBgWidget(
       weatherKind: weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear,
       isNight: false,
@@ -113,13 +119,36 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
         appBar: AppBar(
           elevation: 0.0,
           backgroundColor: Colors.transparent,
-          title: Text(
-            widget.location ?? "定位中...",
-          ),
+          title: widget.isLocal
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.my_location,
+                      color: titleColor,
+                    ),
+                    SizedBox(
+                      width: 8.0,
+                    ),
+                    Text(
+                      widget.location ?? "定位中...",
+                      style: TextStyle(
+                        color: titleColor,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  widget.location,
+                  style: TextStyle(
+                    color: titleColor,
+                  ),
+                ),
           actions: <Widget>[
             IconButton(
               icon: Icon(
                 Icons.location_city,
+                color: titleColor,
               ),
               onPressed: () {
                 Navigator.of(context).pushNamed(CityPage.routeName);
@@ -128,6 +157,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
             IconButton(
               icon: Icon(
                 Icons.info,
+                color: titleColor,
               ),
               onPressed: () {},
             )
@@ -208,17 +238,16 @@ class WeatherContentPageState extends State<WeatherContentPage> {
         height: 56.0,
       ),
       Container(
-        height: 160.0,
+        height: 150.0,
         child: ListView(
           scrollDirection: Axis.horizontal,
           children: widget.weather.weatherHourlys
               .map((weatherHourly) => _buildHourly(weatherHourly))
               .toList(),
+          // todo 动态计算高度
         ),
       ),
-      const SizedBox(
-        height: 16.0,
-      ),
+      Divider(),
       Column(
         children: widget.weather.weatherForecasts
             .map((weatherForecast) => _buildWeatherForecast(weatherForecast))
@@ -301,39 +330,50 @@ class WeatherContentPageState extends State<WeatherContentPage> {
   }
 
   Widget _buildWeatherForecast(WeatherForecast weatherForecast) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            weatherForecast.date,
-            style: TextStyle(
-              fontSize: 16.0,
-            ),
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                weatherForecast.date,
+                style: TextStyle(
+                  fontSize: 16.0,
+                ),
+              ),
+              Expanded(
+                child: Container(
+                    height: 48.0,
+                    width: 48.0,
+                    padding: EdgeInsets.all(8.0),
+                    child:
+                        Image.asset('icons/${weatherForecast.condCodeD}.png')),
+              ),
+              Text(
+                "${weatherForecast.tmpMax}℃/${weatherForecast.tmpMin}℃",
+                style: TextStyle(
+                  fontSize: 16.0,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Container(
-                height: 48.0,
-                width: 48.0,
-                padding: EdgeInsets.all(8.0),
-                child: Image.asset('icons/${weatherForecast.condCodeD}.png')),
-          ),
-          Text(
-            "${weatherForecast.tmpMax}℃/${weatherForecast.tmpMin}℃",
-            style: TextStyle(
-              fontSize: 16.0,
-            ),
-          ),
-        ],
-      ),
+        ),
+        Divider(),
+      ],
     );
   }
 
   Widget _buildLifeStyle(LifeStyle lifeStyle) {
-    return ListTile(
-      title: Text("${lifeStyle.typeDesc}：${lifeStyle.brf}"),
-      subtitle: Text(lifeStyle.txt),
+    return Column(
+      children: <Widget>[
+        ListTile(
+          title: Text("${lifeStyle.typeDesc}：${lifeStyle.brf}"),
+          subtitle: Text(lifeStyle.txt),
+        ),
+        Divider(),
+      ],
     );
   }
 }

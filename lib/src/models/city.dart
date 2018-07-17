@@ -16,6 +16,7 @@ const String TYPE = 'type';
 
 class City {
   City.fromJson(Map<dynamic, dynamic> json) {
+    id = json[ID];
     cid = json[CID];
     location = json[LOCATION];
     parentCity = json[PARENT_CITY];

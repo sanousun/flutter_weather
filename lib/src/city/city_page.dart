@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../models/city.dart';
-import '../models/weather.dart';
 
 import '../city/city_provider.dart';
+import '../city/city_bloc.dart';
 
 import 'city_search_page.dart';
 
@@ -40,23 +40,42 @@ class CityPage extends StatelessWidget {
               itemBuilder: (BuildContext context, int index) {
                 if (index % 2 == 0) {
                   City city = snapshot.data[index ~/ 2];
-                  return ListTile(
-                    title: Text(city.location),
-                    subtitle: Text(city.desc),
-                    onTap: () {
-                      cityBloc.cityChoose.add(city);
-                      Navigator.of(context).pop();
-                    },
-                  );
+                  GestureTapCallback onTap = () {
+                    cityBloc.cityChoose.add(city);
+                    Navigator.of(context).pop();
+                  };
+                  return city.id == null
+                      ? _buildCityItem(context, city, onTap)
+                      : Dismissible(
+                          key: ValueKey(city),
+                          onDismissed: (direction) {
+                            cityBloc.cityAddition
+                                .add(CityAddition(city, false));
+                          },
+                          child: _buildCityItem(context, city, onTap),
+                        );
                 } else {
-                  return Divider(
-                    height: 1.0,
-                    color: Colors.grey[300],
-                  );
+                  return Divider();
                 }
               },
             );
           }),
+    );
+  }
+
+  Widget _buildCityItem(
+      BuildContext context, City city, GestureTapCallback onTap) {
+    ThemeData themeData = Theme.of(context);
+    return ListTile(
+      title: Text(city.location),
+      subtitle: Text(city.desc),
+      leading: city.id == null
+          ? Icon(
+              Icons.my_location,
+              color: themeData.textTheme.subhead.color,
+            )
+          : null,
+      onTap: onTap,
     );
   }
 }
