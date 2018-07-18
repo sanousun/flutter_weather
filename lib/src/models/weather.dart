@@ -303,4 +303,22 @@ class WeatherHourly {
 
   /// 云量，百分比
   String could;
+
+  String get condCodeWithNight {
+    bool isNightIconExist = condCode == '100' ||
+        condCode == '103' ||
+        condCode == '104' ||
+        condCode == '300' ||
+        condCode == '301' ||
+        condCode == '406' ||
+        condCode == '407';
+    DateTime dateTime = DateTime.parse(time);
+    DateTime morning = DateTime(dateTime.year, dateTime.month, dateTime.day, 7);
+    DateTime night = DateTime(dateTime.year, dateTime.month, dateTime.day, 19);
+    bool isNight = !(dateTime.isAfter(morning) && dateTime.isBefore(night));
+    if (isNight && isNightIconExist) {
+      return "${condCode}n";
+    }
+    return condCode;
+  }
 }

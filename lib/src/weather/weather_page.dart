@@ -320,7 +320,10 @@ class WeatherContentPageState extends State<WeatherContentPage> {
           SizedBox(
             width: 32.0,
             height: 32.0,
-            child: Image.asset('icons/${weatherHourly.condCode}.png'),
+            child: Image(
+              color: Theme.of(context).textTheme.subhead.color,
+              image: AssetImage('icons/${weatherHourly.condCodeWithNight}.png'),
+            ),
           ),
           SizedBox(
             height: 2.0,
@@ -352,11 +355,14 @@ class WeatherContentPageState extends State<WeatherContentPage> {
               ),
               Expanded(
                 child: Container(
-                    height: 48.0,
-                    width: 48.0,
-                    padding: EdgeInsets.all(8.0),
-                    child:
-                        Image.asset('icons/${weatherForecast.condCodeD}.png')),
+                  height: 48.0,
+                  width: 48.0,
+                  padding: EdgeInsets.all(8.0),
+                  child: Image(
+                      color: Theme.of(context).textTheme.subhead.color,
+                      image:
+                          AssetImage('icons/${weatherForecast.condCodeD}.png')),
+                ),
               ),
               Text(
                 "${weatherForecast.tmpMax}℃/${weatherForecast.tmpMin}℃",
