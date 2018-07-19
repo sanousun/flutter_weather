@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData(
           brightness: isNight ? Brightness.dark : Brightness.light,
+          accentColor: isNight ? Colors.white : Colors.black,
         ),
         routes: {
           '/': (context) => WeatherPage(isNight),
