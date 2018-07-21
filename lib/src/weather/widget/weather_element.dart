@@ -286,10 +286,10 @@ class Rain extends WeatherElement {
     this.viewHeight,
   })  : this.canvasSize = pow(pow(viewWidth, 2) + pow(viewHeight, 2), 0.5),
         this.speed = viewHeight / 300,
-        this.maxWidth = 0.0111 * viewWidth,
-        this.minWidth = 0.0089 * viewWidth,
-        this.maxHeight = 0.0111 * viewWidth * 18,
-        this.minHeight = 0.0089 * viewWidth * 14 {
+        this.maxWidth = 0.008 * viewWidth,
+        this.minWidth = 0.006 * viewWidth,
+        this.maxHeight = 0.008 * viewWidth * 18,
+        this.minHeight = 0.006 * viewWidth * 14 {
     _init(true);
   }
 

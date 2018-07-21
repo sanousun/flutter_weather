@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,23 +61,29 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   double horizontalTotal = 0.0;
 
   Weather weather;
+  WeatherKind weatherKind = WeatherKind.clear;
 
   Future<Null> _handleRefresh() async {
     if (widget.location == null || widget.location.isEmpty) {
       return;
     }
+    if (this.weather != null) {
+      setState(() {
+        this.weather = null;
+      });
+    }
     _refreshIndicatorKey.currentState?.show();
-    setState(() {
-      this.weather = null;
-    });
-    getWeatherNow(widget.location).then(
-        (weather) => setState(() {
-              this.weather = weather;
-            }), onError: (e) {
+    try {
+      Weather weather = await getWeather(widget.location);
+      setState(() {
+        this.weather = weather;
+        this.weatherKind = weather.weatherNow.getWeatherKind();
+      });
+    } catch (e) {
       _scaffoldKey.currentState?.showSnackBar(SnackBar(
         content: Text(e.toString()),
       ));
-    });
+    }
   }
 
   void startLocation() {
@@ -119,8 +124,6 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
       isNeedData = false;
     }
     CityBloc cityBloc = CityProvider.of(context);
-    WeatherKind weatherKind =
-        weather?.weatherNow?.getWeatherKind() ?? WeatherKind.clear;
     Color color = getBackgroundColor(weatherKind, widget.isNight);
     bool isDark =
         (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) > 192;
@@ -138,6 +141,8 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
           backgroundColor: Colors.transparent,
           appBar: _buildAppbar(themeData.textTheme.subhead.color),
           body: RefreshIndicator(
+            backgroundColor: Colors.white,
+            color: Colors.black,
             key: _refreshIndicatorKey,
             onRefresh: _handleRefresh,
             child: GestureDetector(

@@ -29,7 +29,7 @@ Future<List<City>> areaSearch(String location) async {
   }
 }
 
-Future<Weather> getWeatherNow(String location) async {
+Future<Weather> getWeather(String location) async {
   final uri = Uri.https('free-api.heweather.com', '/s6/weather', {
     'key': '255bfaa117cd42799e185957e9714916',
     'location': location,
