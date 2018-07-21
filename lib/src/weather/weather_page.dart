@@ -72,7 +72,6 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
         this.weather = null;
       });
     }
-    _refreshIndicatorKey.currentState?.show();
     try {
       Weather weather = await getWeather(widget.location);
       setState(() {
@@ -112,7 +111,7 @@ class WeatherRefreshPageState extends State<WeatherRefreshPage> {
   void didUpdateWidget(WeatherRefreshPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.location != oldWidget.location) {
-      _handleRefresh();
+      _refreshIndicatorKey.currentState?.show();
     }
   }
 
