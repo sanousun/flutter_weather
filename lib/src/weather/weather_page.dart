@@ -286,29 +286,31 @@ class WeatherContentPage extends StatelessWidget {
   }
 
   Widget _buildWeatherNow(WeatherNow weatherNow) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          "${weatherNow.condTxt}",
-          style: TextStyle(
-            fontSize: 18.0,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
+      child: Column(
+        children: <Widget>[
+          Text(
+            "${weatherNow.tmp}℃",
+            style: TextStyle(
+              fontSize: 64.0,
+              fontWeight: FontWeight.w300,
+            ),
           ),
-        ),
-        Text(
-          "${weatherNow.tmp}℃",
-          style: TextStyle(
-            fontSize: 64.0,
-            fontWeight: FontWeight.w300,
+          Text(
+            "${weatherNow.condTxt}",
+            style: TextStyle(
+              fontSize: 18.0,
+            ),
           ),
-        ),
-        Text(
-          "${weatherNow.windDir} ${weatherNow.windScDesc}",
-          style: TextStyle(
-            fontSize: 14.0,
-          ),
-        )
-      ],
+          Text(
+            "${weatherNow.windDir} ${weatherNow.windScDesc}",
+            style: TextStyle(
+              fontSize: 14.0,
+            ),
+          )
+        ],
+      ),
     );
   }
 

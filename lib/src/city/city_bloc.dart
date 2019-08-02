@@ -15,7 +15,7 @@ class CityAddition {
 class CityBloc {
   final CityCollection _cityCollection = CityCollection();
 
-  final _cities = BehaviorSubject<List<City>>(seedValue: []);
+  final _cities = BehaviorSubject<List<City>>();
   final _currentCity = BehaviorSubject<City>();
 
   final _cityAdditionController = StreamController<CityAddition>();

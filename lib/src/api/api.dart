@@ -7,7 +7,7 @@ import '../models/city.dart';
 import '../models/weather.dart';
 
 Future<List<City>> areaSearch(String location) async {
-  final uri = Uri.https('search.heweather.com', '/find', {
+  final uri = Uri.https('search.heweather.net', '/find', {
     'key': '255bfaa117cd42799e185957e9714916',
     'location': location,
   });
@@ -30,7 +30,7 @@ Future<List<City>> areaSearch(String location) async {
 }
 
 Future<Weather> getWeather(String location) async {
-  final uri = Uri.https('free-api.heweather.com', '/s6/weather', {
+  final uri = Uri.https('free-api.heweather.net', '/s6/weather', {
     'key': '255bfaa117cd42799e185957e9714916',
     'location': location,
   });

@@ -5,18 +5,25 @@ import 'life_style.dart';
 
 class Weather {
   Weather.fromJson(Map<dynamic, dynamic> json) {
+    print(json['hourly']);
     weatherNow = WeatherNow.fromJson(json['now']);
-    weatherForecasts = (json['daily_forecast'] as List)
-        .map((map) => WeatherForecast.fromJson(map))
-        .toList();
-    weatherHourlys = (json['hourly'] as List)
-        .map((map) => WeatherHourly.fromJson(map))
-        .toList();
+    weatherForecasts = json['daily_forecast'] == null
+        ? []
+        : ((json['daily_forecast'] as List)
+            .map((map) => WeatherForecast.fromJson(map))
+            .toList());
+    weatherHourlys = json['hourly'] == null
+        ? []
+        : ((json['hourly'] as List)
+            .map((map) => WeatherHourly.fromJson(map))
+            .toList());
     city = City.fromJson(json['basic']);
     updateTime = UpdateTime.fromJson(json['update']);
-    lifeStyles = (json['lifestyle'] as List)
-        .map((map) => LifeStyle.fromJson(map))
-        .toList();
+    lifeStyles = json['lifestyle'] == null
+        ? []
+        : ((json['lifestyle'] as List)
+            .map((map) => LifeStyle.fromJson(map))
+            .toList());
   }
 
   bool get isNight {
